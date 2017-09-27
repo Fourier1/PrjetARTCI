@@ -2,6 +2,7 @@
 
 from django.db import models
 
+
 # Create your models here.
 
 
@@ -9,23 +10,23 @@ class Asn(models.Model):
     """
     Table de stock des ASN 
     """
-    name = models.CharField(max_length=150, verbose_name="ASN")
-    code =models.IntegerField(verbose_name="Code ASN")
+    name = models.CharField(max_length=150, verbose_name="ASN", unique=True)
+    code = models.IntegerField(verbose_name="Code ASN", unique=True)
 
 
 class IP(models.Model):
     """
     table de stock des IP 
     """
-    ipv4 = models.CharField(max_length=100, verbose_name="Adresse ipv4")
-    ipv6 = models.CharField(max_length=100, verbose_name="Adresse ipv6")
+    ipv4 = models.CharField(max_length=100, verbose_name="Adresse ipv4", unique=True)
+    ipv6 = models.CharField(max_length=100, verbose_name="Adresse ipv6", blank=True, unique=True)
 
 
 class Infection(models.Model):
     """
     tables des infections(les virus)
     """
-    name = models.CharField(max_length=150, verbose_name="Nom su virus")
+    name = models.CharField(max_length=150, verbose_name="Nom su virus", unique=True)
 
 
 class GroupFile(models.Model):
@@ -38,18 +39,33 @@ class GroupFile(models.Model):
 
 class FileZip(models.Model):
     """
-    entete du fichier csv
+    fichier csv
     """
+    name = models.CharField(max_length=200, verbose_name="Nom du dossier")
+    url = models.CharField(max_length=200, verbose_name="Chemin du dossier")
+    groupFile = models.ForeignKey(GroupFile, related_name="filezips", on_delete=models.PROTECT)
+
+
+class LineFileZip(models.Model):
+    """
+    ligne du fichier csv
+    """
+    # asn = models.IntegerField()
+    # ip = models.CharField(max_length=100)
+    # infection = models.CharField(max_length=100)
+
+    infection = models.ForeignKey(Infection, on_delete=models.CASCADE, related_name="linefilezips")
+    ip = models.ForeignKey(IP, on_delete=models.CASCADE, related_name="linefilezips")
+    asn = models.ForeignKey(Asn, on_delete=models.CASCADE, related_name="linefilezips")
+
+    fileZip = models.ForeignKey(FileZip, related_name="linefilezips", on_delete=models.PROTECT)
     timestamp = models.DateTimeField()
-    ip = models.CharField(max_length=100)
     port = models.IntegerField()
-    asn = models.IntegerField(unique=True)
     geo = models.CharField(max_length=100)
     region = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     hostname = models.CharField(max_length=200)
     type = models.CharField(max_length=50)
-    infection = models.CharField(max_length=100)
     url = models.CharField(max_length=50)
     agent = models.CharField(max_length=200)
     ic_ip = models.CharField(max_length=100)
@@ -74,26 +90,6 @@ class FileZip(models.Model):
     family = models.CharField(max_length=50)
     tag = models.CharField(max_length=50)
     public_source = models.CharField(max_length=100)
-
-
-class User(models.Model):
-    """
-    la tables des utilisateurs
-    """
-    nom = models.CharField(max_length=50, verbose_name="Nom", help_text="Votre nom")
-    prenom = models.CharField(max_length=100, verbose_name="Prenom")
-    contact = models.CharField(max_length=8, verbose_name="Contact(s)")
-    email = models.CharField(max_length=30, verbose_name="E-mail")
-    adresse = models.CharField(max_length=30, verbose_name="Adresse")
-    date_creation = models.DateField(auto_now_add=True, blank=True, verbose_name="Date de création")
-    photo = models.ImageField(upload_to='images', default=0, verbose_name="Choisir une photo")
-
-    def __str__(self):
-        """
-        description sur un nom du model
-        :return: 
-        """
-        return '%s, %s' % (self.nom, self.prenom)
 
 
 class Imap(models.Model):
